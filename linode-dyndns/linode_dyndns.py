@@ -19,7 +19,7 @@ class LinodeDynDNS(object):
         self._domains_record_list_op = cli.ops['domains']['records-list']
 
         self._domain_record = self._fetch_domain_record(pld)
-        self._domain_id = self._domain_record['id']
+        self._domain_id = str(self._domain_record['id'])
         self._records = None
 
     @staticmethod
@@ -32,7 +32,7 @@ class LinodeDynDNS(object):
 
     @classmethod
     def _fetch_domain_record(cls, private_level_domain):
-        domains_list_result = LinodeDynDNS._do_cli_op(cls.DOMAINS_LIST_OP, None)
+        domains_list_result = cls._do_cli_op(cls.DOMAINS_LIST_OP, None)
         domain_record = next((x for x in domains_list_result if x['domain'] == private_level_domain), None)
 
         if not domain_record:
@@ -42,24 +42,23 @@ class LinodeDynDNS(object):
 
     @classmethod
     def fetch_subdomain_record(cls, domain_id, subdomain):
-        records = cls._do_cli_op(cls.DOMAINS_RECORD_LIST_OP, [str(domain_id)])
+        records = cls._do_cli_op(cls.DOMAINS_RECORD_LIST_OP, [domain_id])
 
         return next((rec for rec in records if rec['type'] == 'A' and rec['name'] == subdomain), None)
 
     def try_update(self):
         subdomain_record = self.fetch_subdomain_record(self._domain_id, self._subdomain)
-        update_parameters = self._create_update_parameters()
+        update_parameters = [self._domain_id]
 
-        if not subdomain_record:
-            self._handle_create_record(update_parameters)
-        else:
-            self._handle_update_record(subdomain_record, update_parameters)
+        operation = cli.ops['domains']['records-create']
+        if subdomain_record:
+            operation = cli.ops['domains']['records-update']
+            update_parameters.append(subdomain_record['id'])
 
-    def _handle_update_record(self, subdomain_record, update_parameters):
-        pass
+        update_parameters.append(self._create_update_parameters())
+        update_parameters = ' '.join(update_parameters)
 
-    def _handle_create_record(self, update_parameters):
-        pass
+        self._do_cli_op(operation, [update_parameters])
 
     def _create_update_parameters(self):
         return '--type A --name {subdomain} --target {ip} --priority {priority} --weight {weight} --port {port} ' \
