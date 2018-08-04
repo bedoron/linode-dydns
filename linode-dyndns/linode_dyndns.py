@@ -47,18 +47,22 @@ class LinodeDynDNS(object):
         return next((rec for rec in records if rec['type'] == 'A' and rec['name'] == subdomain), None)
 
     def try_update(self):
+        """
+        :return: Record which was created/updated
+        """
         subdomain_record = self.fetch_subdomain_record(self._domain_id, self._subdomain)
         update_parameters = [self._domain_id]
 
         operation = cli.ops['domains']['records-create']
         if subdomain_record:
             operation = cli.ops['domains']['records-update']
-            update_parameters.append(subdomain_record['id'])
+            update_parameters.append(str(subdomain_record['id']))
 
         update_parameters.append(self._create_update_parameters())
         update_parameters = ' '.join(update_parameters)
 
-        self._do_cli_op(operation, [update_parameters])
+        return self._do_cli_op(operation, update_parameters.split(' '))
+
 
     def _create_update_parameters(self):
         return '--type A --name {subdomain} --target {ip} --priority {priority} --weight {weight} --port {port} ' \
