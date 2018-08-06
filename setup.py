@@ -23,6 +23,7 @@ setup(name='linode-dyndns',
       packages=['linode-dyndns'],
       install_requires=[
           'linode-cli==2.0.6',
+          'requests==2.19.1',
       ],
       install_package_data=True,
       zip_safe=False)

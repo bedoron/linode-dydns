@@ -1,11 +1,33 @@
 from linodecli import cli
+from local_ip_provider import IPProvider, RemoteIPProvider
 
 
 class LinodeDynDNS(object):
+    """
+    Creates a dynamic dns service based on linode's cli tool. for more information visit:
+    https://developers.linode.com/api/v4
+    """
     DOMAINS_LIST_OP = cli.ops['domains']['list']
     DOMAINS_RECORD_LIST_OP = cli.ops['domains']['records-list']
 
-    def __init__(self, pld, subdomain, my_ip, priority=10, weight=5, port=80, ttl_sec=3600):
+    def __init__(self, pld, subdomain, my_ip_provider, priority=10, weight=5, port=80, ttl_sec=3600):
+        """
+        :type pld: str
+        :type subdomain: str
+        :type my_ip_provider IPProvider
+        :type priority: int
+        :type weight: int
+        :type port: int
+        :type ttl_sec: int
+
+        :param pld: private level domain
+        :param subdomain: subdomain you want to register
+        :param my_ip_provider: external machine ip resolver
+        :param priority: priority of record as defined in linode's API
+        :param weight: weight of record as defined in linode's API
+        :param port: port of record as defined in linode's API
+        :param ttl_sec: time to live in seconds of DNS record
+        """
         super(LinodeDynDNS, self).__init__()
         self._ttl_sec = ttl_sec
         self._port = port
@@ -13,7 +35,7 @@ class LinodeDynDNS(object):
         self._priority = priority
 
         self._subdomain = subdomain
-        self._my_ip = my_ip
+        self._my_ip = my_ip_provider.get()
 
         self._domains_list_op = cli.ops['domains']['list']
         self._domains_record_list_op = cli.ops['domains']['records-list']
@@ -63,7 +85,6 @@ class LinodeDynDNS(object):
 
         return self._do_cli_op(operation, update_parameters.split(' '))
 
-
     def _create_update_parameters(self):
         return '--type A --name {subdomain} --target {ip} --priority {priority} --weight {weight} --port {port} ' \
                '--ttl_sec {ttl_sec}'.format(subdomain=self._subdomain, ip=self._my_ip, priority=self._priority,
@@ -71,8 +92,10 @@ class LinodeDynDNS(object):
 
 
 def main():
-    ldns = LinodeDynDNS('stupid.co.il', 'h', '79.179.249.228')
-    ldns.try_update()
+    ip_provider = RemoteIPProvider('https://ip.bedoron.com')
+    ldns = LinodeDynDNS('stupid.co.il', 'h', ip_provider)
+    result = ldns.try_update()
+    print result
 
 
 if __name__ == "__main__":
