@@ -91,7 +91,11 @@ class LinodeDynDNS(object):
                                             weight=self._weight, port=self._port, ttl_sec=self._ttl_sec)
 
 
+def parse_args():
+    pass
+
 def main():
+    args = parse_args() #TODO: Actually parse it
     ip_provider = RemoteIPProvider('https://ip.bedoron.com')
     ldns = LinodeDynDNS('stupid.co.il', 'h', ip_provider)
     result = ldns.try_update()

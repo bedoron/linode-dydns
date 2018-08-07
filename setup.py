@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 def readme():
-    with open('README.rst') as f:
+    with open('README.md') as f:
         return f.read()
 
 
@@ -11,9 +11,12 @@ setup(name='linode-dyndns',
       description='Linode dynamic dns',
       long_description=readme(),
       classifiers=[
-            'License :: MIT License',
-            'Programming Language :: Python :: 2.7',
-            'Topic :: Dynamic DNS',
+          'Programming Language :: Python :: 2.7',
+          'License :: OSI Approved :: MIT License',
+          'Operating System :: OS Independent',
+          'Topic :: Internet :: Name Service (DNS)',
+          'Topic :: Utilities',
+
       ],
       keywords='linode dynamic dns dyndns',
       url='https://github.com/bedoron/linode-dydns',
